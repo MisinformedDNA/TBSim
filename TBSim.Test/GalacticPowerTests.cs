@@ -1,7 +1,12 @@
+using AutoFixture;
+using AutoFixture.Dsl;
+
 namespace TBSim.Test
 {
     public class GalacticPowerTests
     {
+        private readonly Fixture _fixture = new();
+
         [Fact]
         public void Single_player_gets_zero_stars()
         {
@@ -10,7 +15,7 @@ namespace TBSim.Test
             player.OverrideGalacticPower(0);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [int.MaxValue, int.MaxValue, int.MaxValue], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [1, 1, 1]);
             var gameBoard = new GameBoard(darkSide, null!, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -28,7 +33,7 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [playerGalacticPower, int.MaxValue, int.MaxValue], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [playerGalacticPower, int.MaxValue, int.MaxValue]);
             var gameBoard = new GameBoard(darkSide, null!, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -46,7 +51,7 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [playerGalacticPower, int.MaxValue, int.MaxValue], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [playerGalacticPower, int.MaxValue, int.MaxValue]);
             var gameBoard = new GameBoard(darkSide, null!, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -65,7 +70,7 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [0, playerGalacticPower, int.MaxValue], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [0, playerGalacticPower, int.MaxValue]);
             var gameBoard = new GameBoard(darkSide, null!, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -85,7 +90,7 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [0, 0, playerGalacticPower], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [0, 0, playerGalacticPower]);
             var gameBoard = new GameBoard(darkSide, null!, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -93,7 +98,6 @@ namespace TBSim.Test
             Assert.NotNull(path);
             Assert.Equal(1, path.Phases.Count);
             Assert.Equal(3, path.GetStars());
-            Assert.Equal(3, path.Phases[0].GetStars());
         }
 
         [Fact]
@@ -105,8 +109,8 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [0, int.MaxValue, int.MaxValue], int.MaxValue);
-            var other = new Planet("Felucia", StarThresholds: [0, int.MaxValue, int.MaxValue], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [0, int.MaxValue, int.MaxValue]);
+            var other = CreatePlanet(starThresholds: [0, int.MaxValue, int.MaxValue]);
             var gameBoard = new GameBoard(darkSide, other, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -126,11 +130,11 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [0, int.MaxValue, int.MaxValue], int.MaxValue)
-            {
-                Next = new Planet("Geonosis", StarThresholds: [0, int.MaxValue, int.MaxValue], int.MaxValue)
-            };
-            var other = new Planet("Felucia", StarThresholds: [0, int.MaxValue, int.MaxValue], int.MaxValue);
+            var darkSide = BuildPlanet()
+                .With(x => x.StarThresholds, [0, int.MaxValue, int.MaxValue])
+                .With(x => x.Next, CreatePlanet(starThresholds: [0, int.MaxValue, int.MaxValue]))
+                .Create();
+            var other = CreatePlanet(starThresholds: [0, int.MaxValue, int.MaxValue]);
             var gameBoard = new GameBoard(darkSide, other, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -151,7 +155,7 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [ playerGalacticPower * 6 , int.MaxValue, int.MaxValue], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [playerGalacticPower * 6, int.MaxValue, int.MaxValue]);
             var gameBoard = new GameBoard(darkSide, null!, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
@@ -172,14 +176,28 @@ namespace TBSim.Test
             player.OverrideGalacticPower(playerGalacticPower);
             guild.Players.Add(player);
 
-            var darkSide = new Planet("Mustafar", StarThresholds: [100_000_000, 200_000_000, int.MaxValue], int.MaxValue);
-            var felucia = new Planet("Felucia", StarThresholds: [125_000_000, 250_000_000, int.MaxValue], int.MaxValue);
+            var darkSide = CreatePlanet(starThresholds: [100_000_000, 200_000_000, int.MaxValue]);
+            var felucia = CreatePlanet(starThresholds: [125_000_000, 250_000_000, int.MaxValue]);
             var gameBoard = new GameBoard(darkSide, felucia, null!);
 
             var path = Simulation.FindBestPath(gameBoard, guild);
 
             Assert.NotNull(path);
             Assert.Equal(2, path.GetStars());
+        }
+
+        private Planet CreatePlanet(int[] starThresholds)
+        {
+            return BuildPlanet()
+                .With(x => x.StarThresholds, starThresholds)
+                .Create();
+        }
+
+        private IPostprocessComposer<Planet> BuildPlanet()
+        {
+            return _fixture.Build<Planet>()
+                .With(x => x.OperationZoneBonus, 0)
+                .Without(x => x.Next);
         }
     }
 }

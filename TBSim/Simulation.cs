@@ -8,6 +8,7 @@ public static class Simulation
     {
         if (board.PhaseNumber > 6) return null;
 
+        var players = guild.Players;
         Planet? planet1 = board.DarkSide;
         Planet? planet2 = board.Mixed;
         Planet? planet3 = board.LightSide;
@@ -27,7 +28,7 @@ public static class Simulation
             {
                 foreach (var powerTier3 in planet3SignificantPowerTiers)
                 {
-                    int galacticPower = guild.Players[0].GalacticPower;
+                    int galacticPower = players.Sum(x => x.GalacticPower);
 
                     if (powerTier1 > 0 && planet1 is null) continue;
                     if (powerTier2 > 0 && planet2 is null) continue;
@@ -47,6 +48,7 @@ public static class Simulation
                         return powerTier;
                     }
 
+                    planet1?.DeployToOps(ZoneId.Zone1, players);
                     planet1?.DeployUnits(power1);
                     planet2?.DeployUnits(power2);
                     planet3?.DeployUnits(power3);

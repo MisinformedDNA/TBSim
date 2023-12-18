@@ -1,18 +1,26 @@
 ﻿namespace TBSim;
 
-public record Planet(string Name, int[] StarThresholds, int OperationZoneBonus)
+public record Planet(string Name)
 {
-    public List<Operation> Operations { get; } = [];
     public int GalacticPower { get; private set; }
     public Stack<GameAction> GameActions { get; } = [];
     public Planet? Next { get; init; }
+    public Operations Operations { get; init; }
+    public required int OperationZoneBonus { get; init; }
+    public required int[] StarThresholds { get; init; }
+
+    public void DeployToOps(ZoneId zoneId, List<Player> players) {
+        var zone = Operations.GetZone(zoneId);
+        // deploy
+        if (zone.IsComplete())
+            GalacticPower += OperationZoneBonus;
+    }
 
     public void DeployUnits(int galacticPower)
     {
         GalacticPower += galacticPower;
         GameActions.Push(new GuildDeploymentAction(galacticPower));
     }
-
 
     public int GetStars()
     {
@@ -21,8 +29,6 @@ public record Planet(string Name, int[] StarThresholds, int OperationZoneBonus)
         if (GalacticPower >= StarThresholds[0]) return 1;
         return 0;
     }
-
-    public bool IsComplete() => GetStars() > 0;
 
     public IEnumerable<int> GetSignificantPowerTiers()
     {
@@ -34,6 +40,8 @@ public record Planet(string Name, int[] StarThresholds, int OperationZoneBonus)
 
         yield return 0;
     }
+
+    public bool IsComplete() => GetStars() > 0;
 
     public void Undo()
     {
