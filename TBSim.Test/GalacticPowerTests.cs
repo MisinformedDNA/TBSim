@@ -1,6 +1,6 @@
 namespace TBSim.Test
 {
-    public class UnitTest1
+    public class GalacticPowerTests
     {
         [Fact]
         public void Single_player_gets_zero_stars()
@@ -35,6 +35,25 @@ namespace TBSim.Test
 
             Assert.NotNull(path);
             Assert.Equal(1, path.GetStars());
+        }
+
+        [Fact]
+        public void Single_player_gets_one_star_in_one_phase()
+        {
+            var guild = new Guild();
+            var player = new Player("");
+            const int playerGalacticPower = 10_000_000;
+            player.OverrideGalacticPower(playerGalacticPower);
+            guild.Players.Add(player);
+
+            var darkSide = new Planet("Mustafar", StarThresholds: [playerGalacticPower, int.MaxValue, int.MaxValue], int.MaxValue);
+            var gameBoard = new GameBoard(darkSide, null!, null!);
+
+            var path = Simulation.FindBestPath(gameBoard, guild);
+
+            Assert.NotNull(path);
+            Assert.Equal(1, path.GetStars());
+            Assert.Equal(1, path.Phases.Count);
         }
 
         [Fact]
