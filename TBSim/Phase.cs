@@ -1,13 +1,13 @@
 ﻿namespace TBSim;
 
-public class Phase(Planet? darkSide, Planet? mixed, Planet? lightSide)
+public class Phase(PlanetRecord? darkSide, PlanetRecord? mixed, PlanetRecord? lightSide)
 {
-    public Planet? DarkSide { get; } = darkSide;
-    public Planet? Mixed { get; } = mixed;
-    public Planet? LightSide { get; } = lightSide;
+    public PlanetRecord? DarkSide { get; } = darkSide;
+    public PlanetRecord? Mixed { get; } = mixed;
+    public PlanetRecord? LightSide { get; } = lightSide;
 
     public int GetStars() => 
-        DarkSide?.GetStars() ?? 0 + 
-        Mixed?.GetStars() ?? 0 + 
-        LightSide?.GetStars() ?? 0;
+        DarkSide?.Stars ?? 0 + 
+        Mixed?.Stars ?? 0 + 
+        LightSide?.Stars ?? 0;
 }
