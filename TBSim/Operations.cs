@@ -47,11 +47,60 @@ public record Operations()
     public IEnumerable<OperationZone> GetAllZones() => _zones.Values;
 }
 
-public record OperationZone(RequiredUnit[] RequiredUnits)
+public class OperationZone
 {
-    public List<PlacedUnit> PlacedUnits { get; set; } = new(15);
+    private readonly OperationRequirement[] _requirements;
 
-    public bool IsComplete() => RequiredUnits.Length == PlacedUnits.Count;
+    public OperationZone(RequiredUnit[] requiredUnits) => 
+        _requirements = requiredUnits
+            .Select(x => new OperationRequirement(x))
+            .ToArray();
+
+    public void Deploy(Player player, string unitName)
+    {
+        var requirement = GetAvailableMatch(unitName)
+            ?? throw new InvalidOperationException("Unit is not required or has been already been deployed.");
+        var playerUnit = player.Units.FirstOrDefault(x => x.Name == unitName)
+            ?? throw new InvalidOperationException("Player does not have unit.");
+        if (playerUnit.Level < requirement.Unit.MinimumLevel)
+            throw new InvalidOperationException("Unit does not meet the requirements.");
+
+        requirement.FillUnit(player);
+    }
+
+    public bool IsComplete() => _requirements.All(x => x.FilledBy != null);
+
+    public OperationRequirement? GetAvailableMatch(string unitName) =>
+        _requirements.FirstOrDefault(x => !x.IsFilled && x.Unit.Name == unitName);
+
+    public bool HasAvailableMatch(string unitName) => _requirements
+        .Any(x => !x.IsFilled && x.Unit.Name == unitName);
+}
+
+public class OperationRequirement(RequiredUnit unit)
+{
+    public RequiredUnit Unit { get; } = unit;
+    public Player? FilledBy { get; private set; }
+
+    public void FillUnit(Player player)
+    {
+        ArgumentNullException.ThrowIfNull(nameof(player));
+
+        if (IsFilled)
+            throw new InvalidOperationException("Unit already set.");
+
+        FilledBy = player;
+    }
+
+    public bool IsFilled => FilledBy != null;
+
+    public void RemoveUnit()
+    {
+        if (!IsFilled)
+            throw new InvalidOperationException("There is no unit to remove.");
+
+        FilledBy = null;
+    }
 }
 
 public enum ZoneId
@@ -68,6 +117,7 @@ public record RequiredUnit(string Name, Level MinimumLevel);
 
 public enum Level
 {
+    BelowSevenStars,
     SevenStars,
     R5,
     R6,
@@ -75,5 +125,3 @@ public enum Level
     R8,
     R9
 }
-
-public record PlacedUnit(Player Player, Unit Unit);
